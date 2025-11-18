@@ -13,6 +13,24 @@
         class="search-input"
       />
     </div>
+    <div class="counts-section">
+      <div class="count-item">
+        <span class="count-label">100iv:</span>
+        <span class="count-value">{{ count100iv() }}</span>
+      </div>
+      <div class="count-item">
+        <span class="count-label">Shiny 100iv:</span>
+        <span class="count-value">{{ countShiny100iv() }}</span>
+      </div>
+      <div class="count-item pending">
+        <span class="count-label">Pending 100iv:</span>
+        <span class="count-value">{{ pending100iv() }}</span>
+      </div>
+      <div class="count-item pending">
+        <span class="count-label">Pending Shiny 100iv:</span>
+        <span class="count-value">{{ pendingShiny100iv() }}</span>
+      </div>
+    </div>
   </div>
 
   @if (isLoading()) {
@@ -33,7 +51,18 @@
               <a [routerLink]="['/pokemon', pokemon.id]" class="pokemon-card-inline">
                 <div class="pokemon-number">#{{ pokemon.id | number:'3.0' }}</div>
                 <div class="pokemon-image">
-                  <img [src]="pokemon.sprite" [alt]="pokemon.name" loading="lazy" />
+                  @if (isImageLoading(pokemon.id)) {
+                    <img src="/Images/pokemon.png" alt="Loading..." class="pokeball-spinner" />
+                  }
+                  <img 
+                    [src]="pokemon.sprite" 
+                    [alt]="pokemon.name" 
+                    loading="lazy"
+                    (loadstart)="onImageStartLoad(pokemon.id)"
+                    (load)="onImageLoad(pokemon.id)"
+                    (error)="onImageError(pokemon.id)"
+                    [class.hidden]="isImageLoading(pokemon.id)"
+                  />
                 </div>
                 <div class="pokemon-name">{{ pokemon.name }}</div>
                 <div class="pokemon-types">

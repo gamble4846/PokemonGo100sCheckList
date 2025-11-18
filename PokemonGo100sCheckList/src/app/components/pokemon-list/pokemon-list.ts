@@ -21,6 +21,9 @@ export class PokemonList implements OnInit {
   checked100iv = signal<Set<number>>(new Set());
   checkedShiny100iv = signal<Set<number>>(new Set());
 
+  // Track image loading states
+  imageLoading = signal<Set<number>>(new Set());
+
   private readonly STORAGE_KEY_100IV = 'pokemon_100iv_checked';
   private readonly STORAGE_KEY_SHINY_100IV = 'pokemon_shiny_100iv_checked';
 
@@ -150,4 +153,41 @@ export class PokemonList implements OnInit {
     this.checkedShiny100iv.set(current);
     this.saveCheckboxStates();
   }
+
+  onImageLoad(pokemonId: number) {
+    // Remove from loading set when image loads
+    const current = new Set(this.imageLoading());
+    current.delete(pokemonId);
+    this.imageLoading.set(current);
+  }
+
+  onImageStartLoad(pokemonId: number) {
+    // Add to loading set when image starts loading
+    const current = new Set(this.imageLoading());
+    current.add(pokemonId);
+    this.imageLoading.set(current);
+  }
+
+  onImageError(pokemonId: number) {
+    // Remove from loading set on error (show broken image or placeholder)
+    const current = new Set(this.imageLoading());
+    current.delete(pokemonId);
+    this.imageLoading.set(current);
+  }
+
+  isImageLoading(pokemonId: number): boolean {
+    return this.imageLoading().has(pokemonId);
+  }
+
+  // Computed counts
+  count100iv = computed(() => this.checked100iv().size);
+  countShiny100iv = computed(() => this.checkedShiny100iv().size);
+  pending100iv = computed(() => {
+    const total = this.pokemon().length;
+    return total - this.checked100iv().size;
+  });
+  pendingShiny100iv = computed(() => {
+    const total = this.pokemon().length;
+    return total - this.checkedShiny100iv().size;
+  });
 }
