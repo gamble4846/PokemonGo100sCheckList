@@ -1,0 +1,97 @@
+<div class="pokemon-detail-container">
+  @if (isLoading) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading Pokémon...</p>
+    </div>
+  } @else if (pokemon) {
+    <div class="detail-header">
+      <a routerLink="/" class="back-button">← Back to Pokédex</a>
+    </div>
+
+    <div class="pokemon-detail-card">
+      <div class="pokemon-main-info">
+        <div class="pokemon-image-large">
+          <img [src]="pokemon.sprite" [alt]="pokemon.name" />
+        </div>
+        
+        <div class="pokemon-info">
+          <div class="pokemon-number-large">#{{ pokemon.id | number:'3.0' }}</div>
+          <h1 class="pokemon-name-large">{{ pokemon.name }}</h1>
+          
+          <div class="pokemon-types-large">
+            @for (type of pokemon.types; track type) {
+              <span 
+                class="type-badge-large" 
+                [style.background-color]="getTypeColor(type)"
+              >
+                {{ type | titlecase }}
+              </span>
+            }
+          </div>
+
+          <div class="generation-badge">
+            Generation {{ pokemon.generation }}
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <h2>Base Stats</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">⚔️</div>
+            <div class="stat-info">
+              <div class="stat-label">Attack</div>
+              <div class="stat-value-large">{{ pokemon.baseStats.attack }}</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">🛡️</div>
+            <div class="stat-info">
+              <div class="stat-label">Defense</div>
+              <div class="stat-value-large">{{ pokemon.baseStats.defense }}</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">❤️</div>
+            <div class="stat-info">
+              <div class="stat-label">HP</div>
+              <div class="stat-value-large">{{ pokemon.baseStats.hp }}</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-info">
+              <div class="stat-label">Max CP</div>
+              <div class="stat-value-large">{{ pokemon.maxCP || 'N/A' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="navigation-buttons">
+        <a 
+          [routerLink]="['/pokemon', getPreviousPokemon()]" 
+          class="nav-button prev"
+        >
+          ← Previous (#{{ getPreviousPokemon() | number:'3.0' }})
+        </a>
+        <a 
+          [routerLink]="['/pokemon', getNextPokemon()]" 
+          class="nav-button next"
+        >
+          Next (#{{ getNextPokemon() | number:'3.0' }}) →
+        </a>
+      </div>
+    </div>
+  } @else {
+    <div class="error">
+      <p>Pokémon not found</p>
+      <a routerLink="/" class="back-button">← Back to Pokédex</a>
+    </div>
+  }
+</div>

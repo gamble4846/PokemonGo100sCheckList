@@ -1,0 +1,118 @@
+<div class="pokemon-list-container">
+  <div class="header">
+    <h1>Pokémon GO Pokédex</h1>
+    <p class="subtitle">Discover all {{ pokemon().length }} available Pokémon</p>
+  </div>
+
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="Search by name or number..." 
+        [value]="searchTerm()"
+        (input)="onSearchChange($any($event.target).value)"
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-group">
+      <select 
+        [value]="selectedType()"
+        (change)="onTypeChange($any($event.target).value)"
+        class="filter-select"
+      >
+        <option value="all">All Types</option>
+        @for (type of types.slice(1); track type) {
+          <option [value]="type">{{ type | titlecase }}</option>
+        }
+      </select>
+
+      <select 
+        [value]="selectedGeneration()"
+        (change)="onGenerationChange($any($event.target).value)"
+        class="filter-select"
+      >
+        <option value="all">All Generations</option>
+        @for (gen of generations.slice(1); track gen) {
+          <option [value]="gen">Generation {{ gen }}</option>
+        }
+      </select>
+
+      <select 
+        [value]="sortBy()"
+        (change)="onSortChange($any($event.target).value)"
+        class="filter-select"
+      >
+        <option value="id">Sort by ID</option>
+        <option value="name">Sort by Name</option>
+        <option value="cp">Sort by Max CP</option>
+        <option value="attack">Sort by Attack</option>
+        <option value="defense">Sort by Defense</option>
+        <option value="hp">Sort by HP</option>
+      </select>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+      <p>Loading Pokémon...</p>
+    </div>
+  } @else {
+    <div class="results-info">
+      <p>Showing {{ filteredPokemon().length }} of {{ pokemon().length }} Pokémon in {{ filteredFamilies().length }} families</p>
+    </div>
+
+    <div class="families-container">
+      @for (family of filteredFamilies(); track family.familyId) {
+        <div class="family-row">
+          <div class="family-header">
+            <span class="family-name">{{ family.familyName }} Family</span>
+            <span class="family-count">({{ family.pokemon.length }} Pokémon)</span>
+          </div>
+          <div class="family-pokemon">
+            @for (pokemon of family.pokemon; track pokemon.id) {
+              <a [routerLink]="['/pokemon', pokemon.id]" class="pokemon-card-inline">
+                <div class="pokemon-number">#{{ pokemon.id | number:'3.0' }}</div>
+                <div class="pokemon-image">
+                  <img [src]="pokemon.sprite" [alt]="pokemon.name" loading="lazy" />
+                </div>
+                <div class="pokemon-name">{{ pokemon.name }}</div>
+                <div class="pokemon-types">
+                  @for (type of pokemon.types; track type) {
+                    <span 
+                      class="type-badge" 
+                      [style.background-color]="getTypeColor(type)"
+                    >
+                      {{ type | titlecase }}
+                    </span>
+                  }
+                </div>
+                <div class="pokemon-stats">
+                  <div class="stat-item">
+                    <span class="stat-label">CP</span>
+                    <span class="stat-value">{{ pokemon.maxCP || 'N/A' }}</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">ATK</span>
+                    <span class="stat-value">{{ pokemon.baseStats.attack }}</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-label">DEF</span>
+                    <span class="stat-value">{{ pokemon.baseStats.defense }}</span>
+                  </div>
+                </div>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (filteredFamilies().length === 0) {
+      <div class="no-results">
+        <p>No Pokémon found matching your criteria.</p>
+      </div>
+    }
+  }
+</div>
