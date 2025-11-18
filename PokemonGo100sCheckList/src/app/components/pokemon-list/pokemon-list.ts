@@ -15,18 +15,60 @@ export class PokemonList implements OnInit {
   filteredPokemon = signal<Pokemon[]>([]);
   filteredFamilies = signal<PokemonFamily[]>([]);
   searchTerm = signal<string>('');
-  selectedType = signal<string>('all');
-  selectedGeneration = signal<string>('all');
-  sortBy = signal<string>('id');
   isLoading = signal<boolean>(true);
 
-  types = ['all', 'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'];
-  generations = ['all', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  // Track checkbox states for each Pokemon
+  checked100iv = signal<Set<number>>(new Set());
+  checkedShiny100iv = signal<Set<number>>(new Set());
+
+  private readonly STORAGE_KEY_100IV = 'pokemon_100iv_checked';
+  private readonly STORAGE_KEY_SHINY_100IV = 'pokemon_shiny_100iv_checked';
 
   constructor(private pokemonService: PokemonService) {}
 
   ngOnInit() {
+    this.loadCheckboxStates();
     this.loadPokemon();
+  }
+
+  // Load checkbox states from localStorage
+  private loadCheckboxStates() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        // Load 100iv checkboxes
+        const saved100iv = localStorage.getItem(this.STORAGE_KEY_100IV);
+        if (saved100iv) {
+          const ids = JSON.parse(saved100iv) as number[];
+          this.checked100iv.set(new Set(ids));
+        }
+
+        // Load Shiny 100iv checkboxes
+        const savedShiny100iv = localStorage.getItem(this.STORAGE_KEY_SHINY_100IV);
+        if (savedShiny100iv) {
+          const ids = JSON.parse(savedShiny100iv) as number[];
+          this.checkedShiny100iv.set(new Set(ids));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading checkbox states from localStorage:', error);
+    }
+  }
+
+  // Save checkbox states to localStorage
+  private saveCheckboxStates() {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        // Save 100iv checkboxes
+        const ids100iv = Array.from(this.checked100iv());
+        localStorage.setItem(this.STORAGE_KEY_100IV, JSON.stringify(ids100iv));
+
+        // Save Shiny 100iv checkboxes
+        const idsShiny100iv = Array.from(this.checkedShiny100iv());
+        localStorage.setItem(this.STORAGE_KEY_SHINY_100IV, JSON.stringify(idsShiny100iv));
+      }
+    } catch (error) {
+      console.error('Error saving checkbox states to localStorage:', error);
+    }
   }
 
   loadPokemon() {
@@ -49,21 +91,6 @@ export class PokemonList implements OnInit {
     this.applyFilters();
   }
 
-  onTypeChange(value: string) {
-    this.selectedType.set(value);
-    this.applyFilters();
-  }
-
-  onGenerationChange(value: string) {
-    this.selectedGeneration.set(value);
-    this.applyFilters();
-  }
-
-  onSortChange(value: string) {
-    this.sortBy.set(value);
-    this.applyFilters();
-  }
-
   applyFilters() {
     let filtered = [...this.pokemon()];
 
@@ -76,37 +103,8 @@ export class PokemonList implements OnInit {
       );
     }
 
-    // Type filter
-    if (this.selectedType() !== 'all') {
-      filtered = filtered.filter(p => 
-        p.types.some(t => t.toLowerCase() === this.selectedType().toLowerCase())
-      );
-    }
-
-    // Generation filter
-    if (this.selectedGeneration() !== 'all') {
-      filtered = filtered.filter(p => 
-        p.generation === parseInt(this.selectedGeneration())
-      );
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      switch (this.sortBy()) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'cp':
-          return (b.maxCP || 0) - (a.maxCP || 0);
-        case 'attack':
-          return b.baseStats.attack - a.baseStats.attack;
-        case 'defense':
-          return b.baseStats.defense - a.baseStats.defense;
-        case 'hp':
-          return b.baseStats.hp - a.baseStats.hp;
-        default:
-          return a.id - b.id;
-      }
-    });
+    // Sort by ID
+    filtered.sort((a, b) => a.id - b.id);
 
     this.filteredPokemon.set(filtered);
     
@@ -117,5 +115,39 @@ export class PokemonList implements OnInit {
 
   getTypeColor(type: string): string {
     return this.pokemonService.getTypeColor(type);
+  }
+
+  isChecked100iv(pokemonId: number): boolean {
+    return this.checked100iv().has(pokemonId);
+  }
+
+  isCheckedShiny100iv(pokemonId: number): boolean {
+    return this.checkedShiny100iv().has(pokemonId);
+  }
+
+  toggle100iv(pokemonId: number, event: Event) {
+    event.stopPropagation();
+    event.preventDefault();
+    const current = new Set(this.checked100iv());
+    if (current.has(pokemonId)) {
+      current.delete(pokemonId);
+    } else {
+      current.add(pokemonId);
+    }
+    this.checked100iv.set(current);
+    this.saveCheckboxStates();
+  }
+
+  toggleShiny100iv(pokemonId: number, event: Event) {
+    event.stopPropagation();
+    event.preventDefault();
+    const current = new Set(this.checkedShiny100iv());
+    if (current.has(pokemonId)) {
+      current.delete(pokemonId);
+    } else {
+      current.add(pokemonId);
+    }
+    this.checkedShiny100iv.set(current);
+    this.saveCheckboxStates();
   }
 }
