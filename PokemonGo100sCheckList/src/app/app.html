@@ -1,3 +1,16 @@
 <div class="app-container">
-  <router-outlet />
+  @if (isLoading()) {
+    <div class="loading-screen">
+      <div class="spinner"></div>
+      <p>Loading...</p>
+    </div>
+  } @else if (isAuthenticated()) {
+    <div class="header-bar">
+      <h1>Pokémon GO 100s Checklist</h1>
+      <button class="logout-btn" (click)="signOut()">Sign Out</button>
+    </div>
+    <router-outlet />
+  } @else {
+    <app-auth />
+  }
 </div>

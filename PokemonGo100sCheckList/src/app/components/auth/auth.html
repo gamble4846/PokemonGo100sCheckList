@@ -1,0 +1,68 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>{{ isLoginMode() ? 'Sign In' : 'Sign Up' }}</h2>
+    
+    @if (errorMessage()) {
+      <div class="message error">
+        {{ errorMessage() }}
+      </div>
+    }
+    
+    @if (successMessage()) {
+      <div class="message success">
+        {{ successMessage() }}
+      </div>
+    }
+
+    <form (ngSubmit)="onSubmit()" #authForm="ngForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          required
+          [disabled]="isLoading()"
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          required
+          [disabled]="isLoading()"
+          class="form-input"
+        />
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="isLoading()"
+        class="btn btn-primary"
+      >
+        {{ isLoading() ? 'Loading...' : (isLoginMode() ? 'Sign In' : 'Sign Up') }}
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>
+        {{ isLoginMode() ? "Don't have an account?" : 'Already have an account?' }}
+        <button
+          type="button"
+          (click)="toggleMode()"
+          [disabled]="isLoading()"
+          class="link-button"
+        >
+          {{ isLoginMode() ? 'Sign Up' : 'Sign In' }}
+        </button>
+      </p>
+    </div>
+  </div>
+</div>
+

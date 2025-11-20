@@ -1,8 +1,10 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PokemonService, Pokemon, PokemonFamily } from '../../services/pokemon';
+import { AuthService } from '../../services/auth.service';
+import { SavedUserDataService } from '../../services/saved-user-data.service';
 
 @Component({
   selector: 'app-pokemon-list',
@@ -24,53 +26,66 @@ export class PokemonList implements OnInit {
   // Track image loading states
   imageLoading = signal<Set<number>>(new Set());
 
-  private readonly STORAGE_KEY_100IV = 'pokemon_100iv_checked';
-  private readonly STORAGE_KEY_SHINY_100IV = 'pokemon_shiny_100iv_checked';
-
-  constructor(private pokemonService: PokemonService) {}
-
-  ngOnInit() {
-    this.loadCheckboxStates();
-    this.loadPokemon();
+  constructor(
+    private pokemonService: PokemonService,
+    private authService: AuthService,
+    private savedUserDataService: SavedUserDataService
+  ) {
+    // Reload data when user logs in/out
+    effect(() => {
+      const user = this.authService.currentUser();
+      if (user) {
+        this.loadCheckboxStates();
+      } else {
+        // Clear checkboxes when logged out
+        this.checked100iv.set(new Set());
+        this.checkedShiny100iv.set(new Set());
+      }
+    });
   }
 
-  // Load checkbox states from localStorage
-  private loadCheckboxStates() {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        // Load 100iv checkboxes
-        const saved100iv = localStorage.getItem(this.STORAGE_KEY_100IV);
-        if (saved100iv) {
-          const ids = JSON.parse(saved100iv) as number[];
-          this.checked100iv.set(new Set(ids));
-        }
-
-        // Load Shiny 100iv checkboxes
-        const savedShiny100iv = localStorage.getItem(this.STORAGE_KEY_SHINY_100IV);
-        if (savedShiny100iv) {
-          const ids = JSON.parse(savedShiny100iv) as number[];
-          this.checkedShiny100iv.set(new Set(ids));
-        }
-      }
-    } catch (error) {
-      console.error('Error loading checkbox states from localStorage:', error);
+  ngOnInit() {
+    this.loadPokemon();
+    if (this.authService.isAuthenticated()) {
+      this.loadCheckboxStates();
     }
   }
 
-  // Save checkbox states to localStorage
-  private saveCheckboxStates() {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        // Save 100iv checkboxes
-        const ids100iv = Array.from(this.checked100iv());
-        localStorage.setItem(this.STORAGE_KEY_100IV, JSON.stringify(ids100iv));
+  // Load checkbox states from Supabase
+  private async loadCheckboxStates() {
+    const userId = this.authService.getUserId();
+    if (!userId) {
+      return;
+    }
 
-        // Save Shiny 100iv checkboxes
-        const idsShiny100iv = Array.from(this.checkedShiny100iv());
-        localStorage.setItem(this.STORAGE_KEY_SHINY_100IV, JSON.stringify(idsShiny100iv));
-      }
+    try {
+      const { checked100iv, checkedShiny100iv } = 
+        await this.savedUserDataService.getCheckboxStates(userId);
+      this.checked100iv.set(checked100iv);
+      this.checkedShiny100iv.set(checkedShiny100iv);
     } catch (error) {
-      console.error('Error saving checkbox states to localStorage:', error);
+      console.error('Error loading checkbox states from Supabase:', error);
+    }
+  }
+
+  // Save checkbox state to Supabase
+  private async savePokemonData(pokemonId: number, field100iv: boolean, fieldShiny100iv: boolean) {
+    const userId = this.authService.getUserId();
+    if (!userId) {
+      console.warn('User not authenticated. Cannot save data.');
+      return;
+    }
+
+    try {
+      await this.savedUserDataService.savePokemonData({
+        PokemonNumber: pokemonId,
+        '100IV': field100iv,
+        'Shiny 100IV': fieldShiny100iv,
+        'Dynamax Best IV': 0,
+        userId: userId,
+      });
+    } catch (error) {
+      console.error('Error saving Pokemon data to Supabase:', error);
     }
   }
 
@@ -131,27 +146,53 @@ export class PokemonList implements OnInit {
   toggle100iv(pokemonId: number, event: Event) {
     event.stopPropagation();
     event.preventDefault();
+    
+    if (!this.authService.isAuthenticated()) {
+      alert('Please sign in to save your progress.');
+      return;
+    }
+
     const current = new Set(this.checked100iv());
-    if (current.has(pokemonId)) {
+    const isChecked = current.has(pokemonId);
+    if (isChecked) {
       current.delete(pokemonId);
     } else {
       current.add(pokemonId);
     }
     this.checked100iv.set(current);
-    this.saveCheckboxStates();
+    
+    // Save to Supabase
+    this.savePokemonData(
+      pokemonId,
+      !isChecked,
+      this.checkedShiny100iv().has(pokemonId)
+    );
   }
 
   toggleShiny100iv(pokemonId: number, event: Event) {
     event.stopPropagation();
     event.preventDefault();
+    
+    if (!this.authService.isAuthenticated()) {
+      alert('Please sign in to save your progress.');
+      return;
+    }
+
     const current = new Set(this.checkedShiny100iv());
-    if (current.has(pokemonId)) {
+    const isChecked = current.has(pokemonId);
+    if (isChecked) {
       current.delete(pokemonId);
     } else {
       current.add(pokemonId);
     }
     this.checkedShiny100iv.set(current);
-    this.saveCheckboxStates();
+    
+    // Save to Supabase
+    this.savePokemonData(
+      pokemonId,
+      this.checked100iv().has(pokemonId),
+      !isChecked
+    );
   }
 
   onImageLoad(pokemonId: number) {
