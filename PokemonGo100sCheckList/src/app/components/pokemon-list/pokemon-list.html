@@ -13,24 +13,31 @@
         class="search-input"
       />
     </div>
-    <div class="counts-section">
-      <div class="count-item">
-        <span class="count-label">100iv:</span>
-        <span class="count-value">{{ count100iv() }}</span>
+    @if (!isAuthenticated()) {
+      <div class="auth-notice">
+        <span>🔒 Sign in to save your progress</span>
       </div>
-      <div class="count-item">
-        <span class="count-label">Shiny 100iv:</span>
-        <span class="count-value">{{ countShiny100iv() }}</span>
+    }
+    @if (isAuthenticated()) {
+      <div class="counts-section">
+        <div class="count-item">
+          <span class="count-label">100iv:</span>
+          <span class="count-value">{{ count100iv() }}</span>
+        </div>
+        <div class="count-item">
+          <span class="count-label">Shiny 100iv:</span>
+          <span class="count-value">{{ countShiny100iv() }}</span>
+        </div>
+        <div class="count-item pending">
+          <span class="count-label">Pending 100iv:</span>
+          <span class="count-value">{{ pending100iv() }}</span>
+        </div>
+        <div class="count-item pending">
+          <span class="count-label">Pending Shiny 100iv:</span>
+          <span class="count-value">{{ pendingShiny100iv() }}</span>
+        </div>
       </div>
-      <div class="count-item pending">
-        <span class="count-label">Pending 100iv:</span>
-        <span class="count-value">{{ pending100iv() }}</span>
-      </div>
-      <div class="count-item pending">
-        <span class="count-label">Pending Shiny 100iv:</span>
-        <span class="count-value">{{ pendingShiny100iv() }}</span>
-      </div>
-    </div>
+    }
   </div>
 
   @if (isLoading()) {
@@ -49,50 +56,44 @@
           <div class="family-pokemon">
             @for (pokemon of family.pokemon; track pokemon.id) {
               <a [routerLink]="['/pokemon', pokemon.id]" class="pokemon-card-inline">
-                <div class="pokemon-number">#{{ pokemon.id | number:'3.0' }}</div>
-                <div class="pokemon-image">
-                  @if (isImageLoading(pokemon.id)) {
-                    <img src="/Images/pokemon.png" alt="Loading..." class="pokeball-spinner" />
-                  }
-                  <img 
-                    [src]="pokemon.sprite" 
-                    [alt]="pokemon.name" 
-                    loading="lazy"
-                    (loadstart)="onImageStartLoad(pokemon.id)"
-                    (load)="onImageLoad(pokemon.id)"
-                    (error)="onImageError(pokemon.id)"
-                    [class.hidden]="isImageLoading(pokemon.id)"
-                  />
+                <div class="pokemon-portrait-container">
+                  <div class="pokemon-number-badge">#{{ pokemon.id }}</div>
+                  <div class="pokemon-image-circle">
+                    @if (isImageLoading(pokemon.id)) {
+                      <img src="/Images/pokemon.png" alt="Loading..." class="pokeball-spinner" />
+                    }
+                    <img 
+                      [src]="pokemon.sprite" 
+                      [alt]="pokemon.name" 
+                      loading="lazy"
+                      (loadstart)="onImageStartLoad(pokemon.id)"
+                      (load)="onImageLoad(pokemon.id)"
+                      (error)="onImageError(pokemon.id)"
+                      [class.hidden]="isImageLoading(pokemon.id)"
+                    />
+                  </div>
                 </div>
                 <div class="pokemon-name">{{ pokemon.name }}</div>
-                <div class="pokemon-types">
-                  @for (type of pokemon.types; track type) {
-                    <span 
-                      class="type-badge" 
-                      [style.background-color]="getTypeColor(type)"
-                    >
-                      {{ type | titlecase }}
-                    </span>
-                  }
-                </div>
                 <div class="pokemon-checkboxes">
-                  <label class="checkbox-label">
+                  <label class="checkbox-label" [class.disabled]="!isAuthenticated()">
                     <input 
                       type="checkbox" 
                       [checked]="isChecked100iv(pokemon.id)"
+                      [disabled]="!isAuthenticated()"
                       (change)="toggle100iv(pokemon.id, $event)"
                       (click)="$event.stopPropagation()"
                     />
-                    <span>100iv</span>
+                    <span>100IV</span>
                   </label>
-                  <label class="checkbox-label">
+                  <label class="checkbox-label" [class.disabled]="!isAuthenticated()">
                     <input 
                       type="checkbox" 
                       [checked]="isCheckedShiny100iv(pokemon.id)"
+                      [disabled]="!isAuthenticated()"
                       (change)="toggleShiny100iv(pokemon.id, $event)"
                       (click)="$event.stopPropagation()"
                     />
-                    <span>Shiny 100iv</span>
+                    <span>Shiny 100IV</span>
                   </label>
                 </div>
               </a>

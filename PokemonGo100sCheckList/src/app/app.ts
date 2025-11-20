@@ -13,12 +13,17 @@ import { AuthComponent } from './components/auth/auth';
 export class App {
   isAuthenticated = signal<boolean>(false);
   isLoading = signal<boolean>(true);
+  showAuthModal = signal<boolean>(false);
 
-  constructor(private authService: AuthService) {
+  constructor(public authService: AuthService) {
     // Watch for auth state changes
     effect(() => {
       this.isAuthenticated.set(this.authService.isAuthenticated());
       this.isLoading.set(this.authService.isLoading());
+      // Close auth modal when user successfully logs in
+      if (this.authService.isAuthenticated()) {
+        this.showAuthModal.set(false);
+      }
     });
   }
 

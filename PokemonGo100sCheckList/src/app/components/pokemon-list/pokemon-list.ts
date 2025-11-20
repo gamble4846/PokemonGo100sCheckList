@@ -26,6 +26,9 @@ export class PokemonList implements OnInit {
   // Track image loading states
   imageLoading = signal<Set<number>>(new Set());
 
+  // Expose auth state for template
+  isAuthenticated = computed(() => this.authService.isAuthenticated());
+
   constructor(
     private pokemonService: PokemonService,
     private authService: AuthService,
@@ -148,8 +151,7 @@ export class PokemonList implements OnInit {
     event.preventDefault();
     
     if (!this.authService.isAuthenticated()) {
-      alert('Please sign in to save your progress.');
-      return;
+      return; // Checkbox is disabled, so this shouldn't fire, but just in case
     }
 
     const current = new Set(this.checked100iv());
@@ -174,8 +176,7 @@ export class PokemonList implements OnInit {
     event.preventDefault();
     
     if (!this.authService.isAuthenticated()) {
-      alert('Please sign in to save your progress.');
-      return;
+      return; // Checkbox is disabled, so this shouldn't fire, but just in case
     }
 
     const current = new Set(this.checkedShiny100iv());

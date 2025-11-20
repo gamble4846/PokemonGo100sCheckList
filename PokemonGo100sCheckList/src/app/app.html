@@ -4,13 +4,26 @@
       <div class="spinner"></div>
       <p>Loading...</p>
     </div>
-  } @else if (isAuthenticated()) {
+  } @else {
     <div class="header-bar">
       <h1>Pokémon GO 100s Checklist</h1>
-      <button class="logout-btn" (click)="signOut()">Sign Out</button>
+      <div class="auth-actions">
+        @if (isAuthenticated()) {
+          <span class="user-email">{{ authService.currentUser()?.email }}</span>
+          <button class="btn btn-secondary" (click)="signOut()">Sign Out</button>
+        } @else {
+          <button class="btn btn-primary" (click)="showAuthModal.set(true)">Sign In / Sign Up</button>
+        }
+      </div>
     </div>
     <router-outlet />
-  } @else {
-    <app-auth />
+    @if (showAuthModal()) {
+      <div class="modal-overlay" (click)="showAuthModal.set(false)">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <button class="modal-close" (click)="showAuthModal.set(false)">×</button>
+          <app-auth />
+        </div>
+      </div>
+    }
   }
 </div>
