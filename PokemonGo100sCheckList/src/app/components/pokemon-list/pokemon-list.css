@@ -30,6 +30,42 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.tabs-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: #f5f7fa;
+  padding: 4px;
+  border-radius: 10px;
+  position: relative;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.tab-btn:hover {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.tab-btn.active {
+  color: #667eea;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .search-box {
   margin-bottom: 0;
 }
@@ -348,6 +384,9 @@
   text-align: center;
   padding: 4rem 2rem;
   color: #7f8c8d;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 @media (max-width: 768px) {

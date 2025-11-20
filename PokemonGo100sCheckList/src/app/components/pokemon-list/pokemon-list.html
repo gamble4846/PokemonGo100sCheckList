@@ -1,5 +1,28 @@
 <div class="pokemon-list-container">
   <div class="filters-section">
+    <div class="tabs-container">
+      <button 
+        class="tab-btn"
+        [class.active]="activeTab() === 'all'"
+        (click)="setActiveTab('all')"
+      >
+        All
+      </button>
+      <button 
+        class="tab-btn"
+        [class.active]="activeTab() === 'caught'"
+        (click)="setActiveTab('caught')"
+      >
+        Caught
+      </button>
+      <button 
+        class="tab-btn"
+        [class.active]="activeTab() === 'pending'"
+        (click)="setActiveTab('pending')"
+      >
+        Pending
+      </button>
+    </div>
     <div class="search-box">
       <input 
         type="text" 

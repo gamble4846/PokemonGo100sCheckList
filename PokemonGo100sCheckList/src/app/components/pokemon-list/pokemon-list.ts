@@ -18,6 +18,7 @@ export class PokemonList implements OnInit {
   filteredFamilies = signal<PokemonFamily[]>([]);
   searchTerm = signal<string>('');
   isLoading = signal<boolean>(true);
+  activeTab = signal<'all' | 'caught' | 'pending'>('all');
 
   // Track checkbox states for each Pokemon
   checked100iv = signal<Set<number>>(new Set());
@@ -66,6 +67,8 @@ export class PokemonList implements OnInit {
         await this.savedUserDataService.getCheckboxStates(userId);
       this.checked100iv.set(checked100iv);
       this.checkedShiny100iv.set(checkedShiny100iv);
+      // Reapply filters after loading states
+      this.applyFilters();
     } catch (error) {
       console.error('Error loading checkbox states from Supabase:', error);
     }
@@ -112,8 +115,28 @@ export class PokemonList implements OnInit {
     this.applyFilters();
   }
 
+  setActiveTab(tab: 'all' | 'caught' | 'pending') {
+    this.activeTab.set(tab);
+    this.applyFilters();
+  }
+
   applyFilters() {
     let filtered = [...this.pokemon()];
+
+    // Tab filter
+    const tab = this.activeTab();
+    if (tab === 'caught') {
+      // Show only Pokemon that have at least one checkbox checked
+      filtered = filtered.filter(p => 
+        this.checked100iv().has(p.id) || this.checkedShiny100iv().has(p.id)
+      );
+    } else if (tab === 'pending') {
+      // Show only Pokemon that have neither checkbox checked
+      filtered = filtered.filter(p => 
+        !this.checked100iv().has(p.id) && !this.checkedShiny100iv().has(p.id)
+      );
+    }
+    // 'all' tab shows everything, no filter needed
 
     // Search filter
     const search = this.searchTerm().toLowerCase();
@@ -169,6 +192,9 @@ export class PokemonList implements OnInit {
       !isChecked,
       this.checkedShiny100iv().has(pokemonId)
     );
+    
+    // Reapply filters after state change
+    this.applyFilters();
   }
 
   toggleShiny100iv(pokemonId: number, event: Event) {
@@ -194,6 +220,9 @@ export class PokemonList implements OnInit {
       this.checked100iv().has(pokemonId),
       !isChecked
     );
+    
+    // Reapply filters after state change
+    this.applyFilters();
   }
 
   onImageLoad(pokemonId: number) {
