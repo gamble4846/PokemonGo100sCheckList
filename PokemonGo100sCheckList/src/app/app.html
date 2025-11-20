@@ -20,7 +20,6 @@
     @if (showAuthModal()) {
       <div class="modal-overlay" (click)="showAuthModal.set(false)">
         <div class="modal-content" (click)="$event.stopPropagation()">
-          <button class="modal-close" (click)="showAuthModal.set(false)">×</button>
           <app-auth />
         </div>
       </div>

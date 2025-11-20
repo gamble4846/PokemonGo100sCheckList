@@ -1,67 +1,100 @@
 <div class="auth-container">
   <div class="auth-card">
-    <h2>{{ isLoginMode() ? 'Sign In' : 'Sign Up' }}</h2>
-    
-    @if (errorMessage()) {
-      <div class="message error">
-        {{ errorMessage() }}
-      </div>
-    }
-    
-    @if (successMessage()) {
-      <div class="message success">
-        {{ successMessage() }}
-      </div>
-    }
-
-    <form (ngSubmit)="onSubmit()" #authForm="ngForm">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          [(ngModel)]="email"
-          required
-          [disabled]="isLoading()"
-          class="form-input"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          [(ngModel)]="password"
-          required
-          [disabled]="isLoading()"
-          class="form-input"
-        />
-      </div>
-
-      <button
-        type="submit"
+    <div class="auth-switcher">
+      <button 
+        type="button"
+        class="switcher-btn"
+        [class.active]="isLoginMode()"
+        (click)="toggleMode()"
         [disabled]="isLoading()"
-        class="btn btn-primary"
       >
-        {{ isLoading() ? 'Loading...' : (isLoginMode() ? 'Sign In' : 'Sign Up') }}
+        Sign In
       </button>
-    </form>
+      <button 
+        type="button"
+        class="switcher-btn"
+        [class.active]="!isLoginMode()"
+        (click)="toggleMode()"
+        [disabled]="isLoading()"
+      >
+        Sign Up
+      </button>
+      <span class="switcher-indicator" [class.switch-right]="!isLoginMode()"></span>
+    </div>
 
-    <div class="auth-footer">
-      <p>
-        {{ isLoginMode() ? "Don't have an account?" : 'Already have an account?' }}
+    <div class="auth-content" [class.switch-content]="!isLoginMode()">
+      <div class="auth-header">
+        <h2>{{ isLoginMode() ? 'Welcome Back' : 'Create Account' }}</h2>
+        <p class="auth-subtitle">{{ isLoginMode() ? 'Sign in to your account' : 'Sign up to get started' }}</p>
+      </div>
+      
+      @if (errorMessage()) {
+        <div class="message error">
+          <svg class="message-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          {{ errorMessage() }}
+        </div>
+      }
+      
+      @if (successMessage()) {
+        <div class="message success">
+          <svg class="message-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          {{ successMessage() }}
+        </div>
+      }
+
+      <form (ngSubmit)="onSubmit()" #authForm="ngForm" class="auth-form">
+        <div class="form-group">
+          <div class="input-wrapper">
+            <input
+              type="email"
+              id="email"
+              name="email"
+              [(ngModel)]="email"
+              required
+              [disabled]="isLoading()"
+              class="form-input"
+              placeholder=" "
+            />
+            <label for="email" class="input-label">Email</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-wrapper">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              [(ngModel)]="password"
+              required
+              [disabled]="isLoading()"
+              class="form-input"
+              placeholder=" "
+            />
+            <label for="password" class="input-label">Password</label>
+          </div>
+        </div>
+
         <button
-          type="button"
-          (click)="toggleMode()"
+          type="submit"
           [disabled]="isLoading()"
-          class="link-button"
+          class="btn btn-primary"
         >
-          {{ isLoginMode() ? 'Sign Up' : 'Sign In' }}
+          @if (isLoading()) {
+            <svg class="btn-spinner" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Processing...</span>
+          } @else {
+            {{ isLoginMode() ? 'Sign In' : 'Sign Up' }}
+          }
         </button>
-      </p>
+      </form>
     </div>
   </div>
 </div>
